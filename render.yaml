@@ -5,6 +5,11 @@
 # partir do Dockerfile incluído na raiz do projeto (multi-stage: Maven builda o .jar,
 # a imagem final só leva o JRE).
 #
+# IMPORTANTE (JDBC): passamos host/porta/nome do banco separados (em vez da
+# connectionString pronta) porque o driver JDBC do Java exige o prefixo "jdbc:" na URL,
+# que a connectionString do Render não inclui. A URL final é montada em
+# application-prod.properties.
+#
 # Depois do primeiro deploy, ajuste as variáveis marcadas com "sync: false" no painel do Render.
 
 databases:
@@ -20,10 +25,18 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
-      - key: DATABASE_URL
+      - key: DATABASE_HOST
         fromDatabase:
           name: meteora-db
-          property: connectionString
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: meteora-db
+          property: port
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: meteora-db
+          property: database
       - key: DATABASE_USERNAME
         fromDatabase:
           name: meteora-db
