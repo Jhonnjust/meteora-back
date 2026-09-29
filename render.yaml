@@ -1,0 +1,38 @@
+# Deploy automático no Render (https://render.com): "New +" → "Blueprint" → aponte para
+# este repositório e o Render lê este arquivo sozinho.
+#
+# IMPORTANTE: o Render não tem runtime nativo para Java, então este serviço builda a
+# partir do Dockerfile incluído na raiz do projeto (multi-stage: Maven builda o .jar,
+# a imagem final só leva o JRE).
+#
+# Depois do primeiro deploy, ajuste as variáveis marcadas com "sync: false" no painel do Render.
+
+databases:
+  - name: meteora-db
+    plan: free
+    databaseName: meteora
+    user: meteora
+
+services:
+  - type: web
+    name: meteora-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: meteora-db
+          property: connectionString
+      - key: DATABASE_USERNAME
+        fromDatabase:
+          name: meteora-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: meteora-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false # preencha com a URL do seu front-end no Vercel, ex.: https://seu-projeto.vercel.app
